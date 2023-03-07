@@ -10,16 +10,16 @@ const register = (async (req, res) => {
         if (err) {
           return res.status(401).send(response.error(err));
         }
-
-        await userModel.create({
+        var userRegister = await userModel.create({
             name : name,
             email : email,
             password : hashedPassword,
             createdAt: new Date(),
             updatedAt: new Date()
         });
-        const token = jwt.sign({ email }, 'secret', { expiresIn: '1h' });
-        return res.status(200).send(response.success(token));
+        var userId = userRegister.toJSON().id;
+        const token = jwt.sign({ userId }, 'secret', { expiresIn: '1h' });
+        return response.success(req, res, token);
     });
 })
 
@@ -38,9 +38,18 @@ const login = (async(req, res) => {
         return res.status(401).send(response.error('Authentication failed'));
       }
       const token = jwt.sign({ email }, 'secret', { expiresIn: '1h' });
-      return res.status(200).send(response.success(token));
+      return response.success(req, res, token);
+      
     });
 
   });
 
-module.exports = { login, register }
+  const getProfile = (async(req, res) => {
+    var userD = await userModel.findOne({raw: true,where:{id:req.userId}});
+    if(userD == null){
+      return res.status(401).send(response.error('User not exist'));
+    }
+    return response.success(req, res, userD);
+  });
+
+module.exports = { login, register, getProfile }
