@@ -6,9 +6,13 @@ var bodyParser = require('body-parser')
 const sequelize = require('./config/database');
 
 app.use(express.json());
-app.use(bodyParser.urlencoded({
-  extended: true
-}));
+// app.use(bodyParser.urlencoded({
+//   extended: true
+// }));
+
+app.use(bodyParser.urlencoded({ extended: true }))
+app.use(bodyParser.json())
+
 app.use("/user",userRoute)
 
 app.listen(5000, async ()  => {
