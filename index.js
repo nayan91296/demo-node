@@ -7,10 +7,11 @@ const sequelize = require('./config/database');
 var multipart = require('connect-multiparty');
 // var multipartMiddleware = multipart();
 const path = require('path');
+const userModel = require('./models/user');
+const postModel = require('./models/post');
 
 app.use(express.json());
 
-console.log('dir',__dirname);
 app.use('/images',express.static(path.join(__dirname, 'public/uploads/')))
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
@@ -22,6 +23,9 @@ app.listen(5000, async ()  => {
   console.log(`Server listening on port 5000`)
   try {
     await sequelize.authenticate();
+    postModel.belongsTo(userModel, {
+      foreignKey: 'user_id'
+    });
     console.log('Connection has been established successfully.');
   } catch (error) {
     console.error('Unable to connect to the database:', error);

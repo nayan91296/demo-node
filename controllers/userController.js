@@ -1,4 +1,4 @@
-const userModel = require('../models/user.js');
+const userModel = require('../models/user');
 const response = require('../controllers/response');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
@@ -9,9 +9,14 @@ const path = require('path');
 const fs = require('fs');
 var express = require('express')
 var app = express()
+const postModel = require('../models/post');
 
 const register = (async (req, res) => {
     const { name, email, password } = req.body;
+    const isEmailUnique = await checkUniqueEmail(userModel,email);
+    if (!isEmailUnique) {
+      return res.status(401).send(response.error('Email already exist'));
+    }
     bcrypt.hash(password, 10, async(err, hashedPassword) => {
         if (err) {
           return res.status(401).send(response.error(err));
@@ -28,6 +33,12 @@ const register = (async (req, res) => {
         return response.success(req, res, token);
     });
 })
+
+const checkUniqueEmail = async (user,email) => {
+  const existingUser = await user.findOne({ where:{email:email }});
+  console.log('existingUser',existingUser);
+  return !existingUser;
+};
 
 const login = (async(req, res) => {
 
@@ -76,7 +87,6 @@ const uploadImage = (async(req, res) => {
     var uploaFiles = multer({ storage: storage }).single('avatar');
     
     uploaFiles(req, res, async (err) => {
-      console.log('req.file',req.file);
       if (!req.file) {
           resUnauthorized = {
               'message': "Please select an image !!",
@@ -119,7 +129,6 @@ const uploadImage = (async(req, res) => {
 })
 
 const updateProfile = (async(req, res) => {
-  console.log('user',req.body);
   await userModel.update(
     {
       name: req.body.name,
@@ -132,11 +141,32 @@ const updateProfile = (async(req, res) => {
   return response.success(req, res, 'Profile updated successfully..');
 });
 
+const addPost = (async(req, res) => {
+    var post = await postModel.create({
+        name : req.body.name,
+        user_id : req.body.user_id,
+        createdAt: new Date(),
+        updatedAt: new Date()
+    });
+    return response.success(req, res, post);
+});
+
+const getPost = (async(req, res) => {
+  var postData = await postModel.findAll({
+    include: [{
+      model: userModel
+    }]
+  });
+  return response.success(req, res, postData);
+});
+
 module.exports = 
 { 
   login,
   register,
   getProfile,
   uploadImage,
-  updateProfile
+  updateProfile,
+  addPost,
+  getPost
 }

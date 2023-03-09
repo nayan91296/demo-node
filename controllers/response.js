@@ -26,17 +26,13 @@ module.exports.success = async function(req,res,data) {
   };
 
   const EncryptedData = (async(req, res, data)=>{
-    console.log('env',req.headers.env);
     if (req.headers.env) {
         if (req.headers.env == 'test') {
-          console.log('mac1');
             return data;
         } else {
-          console.log('mac2');
             return await encryptedDataResponse(data);
         }
     } else {
-      console.log('mac3');
         return await encryptedDataResponse(data);
     }
   })

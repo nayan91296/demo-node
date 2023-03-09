@@ -20,6 +20,14 @@ function userLogin(req, res, next) {
   validatorUtilWithCallback(validationRule, {}, req, res, next);
 }
 
+function userPost(req, res, next) {
+  const validationRule = {
+      "name": "required",
+      "user_id": "required",
+  }
+  validatorUtilWithCallback(validationRule, {}, req, res, next);
+}
+
 function validatorUtilWithCallback (rules, customMessages, req, res, next) {
   const validation = new Validator(req.body, rules, customMessages);
   validation.passes(() => next());
@@ -40,5 +48,6 @@ module.exports = {
   formattedErrors,
   validatorUtilWithCallback,
   userRegister,
-  userLogin 
+  userLogin,
+  userPost 
 }
