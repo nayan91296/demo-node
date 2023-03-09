@@ -7,7 +7,8 @@ require('dotenv').config()
 
 router.post("/register",userValidation.userRegister,userController.register);
 router.post("/login",userValidation.userLogin,userController.login);
-router.post("/uploadImage",userController.uploadImage);
+router.post("/uploadImage",auth,userController.uploadImage);
 router.get("/getProfile",auth,userController.getProfile);
+router.post("/updateProfile",auth,userController.updateProfile);
 
 module.exports=router;

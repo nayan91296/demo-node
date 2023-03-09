@@ -4,14 +4,17 @@ var app = express()
 const userRoute=require('./routes/index')
 var bodyParser = require('body-parser')
 const sequelize = require('./config/database');
+var multipart = require('connect-multiparty');
+// var multipartMiddleware = multipart();
+const path = require('path');
 
 app.use(express.json());
-// app.use(bodyParser.urlencoded({
-//   extended: true
-// }));
 
-app.use(bodyParser.urlencoded({ extended: true }))
-app.use(bodyParser.json())
+console.log('dir',__dirname);
+app.use('/images',express.static(path.join(__dirname, 'public/uploads/')))
+app.use(bodyParser.urlencoded({ extended: true }));
+app.use(bodyParser.json());
+// app.use(multipart());
 
 app.use("/user",userRoute)
 

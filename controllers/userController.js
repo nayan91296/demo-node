@@ -7,6 +7,8 @@ const multer = require('multer');
 const bodyParser = require("body-parser");
 const path = require('path');
 const fs = require('fs');
+var express = require('express')
+var app = express()
 
 const register = (async (req, res) => {
     const { name, email, password } = req.body;
@@ -41,7 +43,8 @@ const login = (async(req, res) => {
       if (!result) {
         return res.status(401).send(response.error('Authentication failed'));
       }
-      const token = jwt.sign({ email }, 'secret', { expiresIn: '1h' });
+      var userId = userD.id;
+      const token = jwt.sign({ userId }, 'secret', { expiresIn: '1h' });
       return response.success(req, res, token);
       
     });
@@ -49,7 +52,7 @@ const login = (async(req, res) => {
   });
 
 const getProfile = (async(req, res) => {
-    var userD = await userModel.findOne({raw: true,where:{id:req.userId}});
+    var userD = await userModel.findOne({where:{id:req.userId}});
     if(userD == null){
       return res.status(401).send(response.error('User not exist'));
     }
@@ -60,21 +63,18 @@ const uploadImage = (async(req, res) => {
   
     const storage = multer.diskStorage({
       destination: function (req, file, cb) {
-        // console.log('req.file',file);
         let serverImagePath = './public/uploads/';
-              
         if (!fs.existsSync(serverImagePath)) {
             fs.mkdirSync(serverImagePath, { recursive: true });
         }
         cb(null, serverImagePath)
       },
       filename: function (req, file, cb) {
-        // console.log('req.file f',file);
         cb(null, Date.now()  + '-' + file.originalname)
       }
     })
     var uploaFiles = multer({ storage: storage }).single('avatar');
-    // console.log('u',uploaFiles);
+    
     uploaFiles(req, res, async (err) => {
       console.log('req.file',req.file);
       if (!req.file) {
@@ -87,10 +87,9 @@ const uploadImage = (async(req, res) => {
           resUnauthorized = {
               'message': err,
           }
-          // logger.info("Image Upload Validation");
-          // logger.info(err);
+      
           return res.status(401).send(response.error(resUnauthorized));
-          // return sendError(req, res, resUnauthorized);
+          
       } else {
           try {
               var allowedExtensions = /(\.jpg|\.jpeg|\.png|\.svg)$/i;
@@ -99,9 +98,9 @@ const uploadImage = (async(req, res) => {
                       'message': "Please select only image !",
                   }
                   return res.status(401).send(response.error(resUnauthorized));
-                  // return sendError(req, res, resUnauthorized);
+                  
               }
-              avatar = process.env.APP_IMAGE_BASE_URL + 'uploads/' + req.file.filename;
+              avatar = process.env.APP_IMAGE_BASE_URL + req.file.filename;
               const responseData = {
                   'message': "Image Updated Successfully",
                   'data': {
@@ -109,18 +108,35 @@ const uploadImage = (async(req, res) => {
                       filename: req.file.filename
                   }
               };
+              
               return response.success(req, res, responseData);
-              // return sendSuccess(req, res, responseData);
+             
           } catch (err) {
-              // resUnauthorized = {
-              //     'message': process.env.APP_ERROR_MESSAGE,
-              // }
-              // logger.info("Image Upload ");
-              // logger.info(err);
-              // return sendError(req, res, resUnauthorized);
+            return res.status(401).send(response.error(err));
           }
       }
   });
 })
 
-module.exports = { login, register, getProfile, uploadImage }
+const updateProfile = (async(req, res) => {
+  console.log('user',req.body);
+  await userModel.update(
+    {
+      name: req.body.name,
+      profile : req.body.profile
+    },
+    {
+      where: { id:req.userId },
+    }
+  );
+  return response.success(req, res, 'Profile updated successfully..');
+});
+
+module.exports = 
+{ 
+  login,
+  register,
+  getProfile,
+  uploadImage,
+  updateProfile
+}
