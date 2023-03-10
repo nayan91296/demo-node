@@ -1,6 +1,7 @@
 const response = require('./controllers/response');
 const Validator = require('validatorjs');
 const userModel = require('./models/user')
+const postModel = require('./models/post')
 
 function userRegister(req, res, next) {
 
@@ -23,7 +24,7 @@ function userLogin(req, res, next) {
 
 function userPost(req, res, next) {
   const validationRule = {
-      "name": "required",
+      "name": "required|exist:posts,name",
       "user_id": "required",
   }
   validatorUtilWithCallback(validationRule, {}, req, res, next);
@@ -39,18 +40,21 @@ function validatorUtilWithCallback (rules, customMessages, req, res, next) {
 };
 
 Validator.registerAsync('exist', function (value, attribute, req, passes) {
-  console.log('value',value,attribute);
   if (!attribute) throw new Error('Specify Requirements i.e fieldName: exist:table,column');
-
   let attArr = attribute.split(",");
   if (attArr.length !== 2) throw new Error(`Invalid format for validation rule on ${attribute}`);
   const { 0: table, 1: column } = attArr;
-
   let msg = (column == "username") ? `${column} has already been taken ` : `${column} already in use`
   var find_filed = {};
   find_filed[column] = value;
   // valueExists function for username, email, mobile number async function
-  userModel.findOne({ where: find_filed }).then((result) => {
+  var model = '';
+  if(table=='posts'){
+    model = postModel;
+  }else if(table=='users'){
+    model = userModel;
+  }
+  model.findOne({ where: find_filed }).then((result) => {
       if (result) {
           passes(false, msg);
       } else {

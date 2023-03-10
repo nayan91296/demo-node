@@ -10,8 +10,11 @@ const fs = require('fs');
 var express = require('express')
 var app = express()
 const postModel = require('../models/post');
+const nodemailer = require('nodemailer');
+const { client } = require('../redis');
 
 const register = (async (req, res) => {
+  try{
     const { name, email, password } = req.body;
     const isEmailUnique = await checkUniqueEmail(userModel,email);
     if (!isEmailUnique) {
@@ -30,9 +33,46 @@ const register = (async (req, res) => {
         });
         var userId = userRegister.toJSON().id;
         const token = jwt.sign({ userId }, 'secret', { expiresIn: '1h' });
+        sendMail(email);
         return response.success(req, res, token);
     });
+  }catch(error){
+    console.log('here',error);
+    return response.error('Somethng went wrong');
+  }
+    
 })
+
+const sendMail = async (email) => {
+    // create reusable transporter object using the default SMTP transport
+    let transporter = nodemailer.createTransport({
+      host: 'smtp.gmail.com',
+      port: 465,
+      secure: true, // true for 465, false for other ports
+      auth: {
+          user: 'nayanvariya123@gmail.com',
+          pass: 'ygistnurgegtlhau'
+      }
+    });
+
+    // setup email data with unicode symbols
+    let mailOptions = {
+      from: 'nayanvariya123@gmail.com', // sender address
+      to: email, // list of receivers
+      subject: 'Hello ✔', // Subject line
+      text: 'Hello world?', // plain text body
+      html: '<b>Hello world?</b>' // html body
+    };
+
+    // send mail with defined transport object
+    transporter.sendMail(mailOptions, (error, info) => {
+      if (error) {
+          console.log('here',error);
+          return res.status(401).send(response.error(err));
+      }
+      console.log('Message sent: %s', info.messageId);
+    });
+};
 
 const checkUniqueEmail = async (user,email) => {
   const existingUser = await user.findOne({ where:{email:email }});
@@ -160,6 +200,21 @@ const getPost = (async(req, res) => {
   return response.success(req, res, postData);
 });
 
+const logout = async(req, res) => {
+  const token = req.header("token")
+  if (!token) return res.status(401).send(response.error('token required'));  
+    try {
+      client.set(`blacklist:${token}`, 'true', 'EX', 3600, (async(err) => {
+        if (err) {
+          return res.status(500).send(response.error(err));
+        }
+      }));      
+      return response.success(req, res, 'User logout successfully');
+    } catch (error) {
+      return res.status(403).send(response.error(err));      
+    }
+};
+
 module.exports = 
 { 
   login,
@@ -168,5 +223,6 @@ module.exports =
   uploadImage,
   updateProfile,
   addPost,
-  getPost
+  getPost,
+  logout
 }

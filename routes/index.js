@@ -12,5 +12,6 @@ router.get("/getProfile",auth,userController.getProfile);
 router.post("/updateProfile",auth,userController.updateProfile);
 router.post("/addPost",userValidation.userPost,auth,userController.addPost);
 router.get("/getPost",auth,userController.getPost);
+router.post("/logout",auth,userController.logout);
 
 module.exports=router;
