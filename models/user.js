@@ -11,6 +11,10 @@ const User = sequelize.define('user', {
           password: {
             type: DataTypes.TEXT
           },
+          role: {
+            type: Sequelize.INTEGER,
+            defaultValue: 2
+          },
           profile:{
             type: DataTypes.TEXT,
             get() {
