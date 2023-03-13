@@ -121,6 +121,9 @@ const uploadImage = (async(req, res) => {
         cb(null, serverImagePath)
       },
       filename: function (req, file, cb) {
+        if (!file.mimetype.startsWith('image/')) {
+          return res.status(401).send(response.error('Invalid file type'));
+        }
         cb(null, Date.now()  + '-' + file.originalname)
       }
     })
@@ -166,6 +169,127 @@ const uploadImage = (async(req, res) => {
           }
       }
   });
+})
+
+const uploadDocument = (async(req, res) => {
+  const storage = multer.diskStorage({
+    destination: function (req, file, cb) {
+      let serverDocumentPath = './public/uploads/';
+      if (!fs.existsSync(serverDocumentPath)) {
+          fs.mkdirSync(serverDocumentPath, { recursive: true });
+      }
+      cb(null, serverDocumentPath)
+    },
+    filename: function (req, file, cb) {
+      if (!file.mimetype.startsWith('application/') && !file.mimetype.startsWith('text/')) {
+        return res.status(401).send(response.error('Invalid file type'));
+      }
+      cb(null, Date.now()  + '-' + file.originalname)
+    }
+  })
+  var uploaFiles = multer({ storage: storage }).single('document');
+  
+  uploaFiles(req, res, async (err) => {
+    if (!req.file) {
+        resUnauthorized = {
+            'message': "Please select an document !!",
+        }
+        return res.status(401).send(response.error(resUnauthorized));
+    } else if (err) {
+      console.log(err);
+        resUnauthorized = {
+            'message': err,
+        }
+    
+        return res.status(401).send(response.error(resUnauthorized));
+        
+    } else {
+        try {
+            var allowedExtensions = /(\.csv|\.doc|\.docx|\.gif|\.pdf|\.ppt|\.pptx|\.zip)$/i;
+            if (!allowedExtensions.exec(req.file.filename)) {
+                resUnauthorized = {
+                    'message': "Please select only document !",
+                }
+                return res.status(401).send(response.error(resUnauthorized));
+                
+            }
+            document = process.env.APP_IMAGE_BASE_URL + req.file.filename;
+            const responseData = {
+                'message': "Document Updated Successfully",
+                'data': {
+                    img: document,
+                    filename: req.file.filename
+                }
+            };
+            
+            return response.success(req, res, responseData);
+           
+        } catch (err) {
+          return res.status(401).send(response.error(err));
+        }
+    }
+});
+})
+
+const uploadVideo = (async(req, res) => {
+  console.log('here');
+  const storage = multer.diskStorage({
+    destination: function (req, file, cb) {
+      let serverVideoPath = './public/uploads/';
+      if (!fs.existsSync(serverVideoPath)) {
+          fs.mkdirSync(serverVideoPath, { recursive: true });
+      }
+      cb(null, serverVideoPath)
+    },
+    filename: function (req, file, cb) {
+      if (!file.mimetype.startsWith('video/')) {
+        return res.status(401).send(response.error('Invalid file type'));
+      }
+      cb(null, Date.now()  + '-' + file.originalname)
+    }
+  })
+  var uploaFiles = multer({ storage: storage }).single('video');
+  
+  uploaFiles(req, res, async (err) => {
+    if (!req.file) {
+        resUnauthorized = {
+            'message': "Please select an video !!",
+        }
+        return res.status(401).send(response.error(resUnauthorized));
+    } else if (err) {
+      console.log(err);
+        resUnauthorized = {
+            'message': err,
+        }
+    
+        return res.status(401).send(response.error(resUnauthorized));
+        
+    } else {
+        try {
+            var allowedExtensions = /(\.avi|\.mp4|\.webm|\.ogg|\.m4p|\.m4v|\.wmv|\.mov|\.qt)$/i;
+            if (!allowedExtensions.exec(req.file.filename)) {
+                resUnauthorized = {
+                    'message': "Please select only video !",
+                }
+                return res.status(401).send(response.error(resUnauthorized));
+                
+            }
+            video = process.env.APP_IMAGE_BASE_URL + req.file.filename;
+            const responseData = {
+                'message': "Video Updated Successfully",
+                'data': {
+                    img: video,
+                    filename: req.file.filename
+                }
+            };
+            
+            return response.success(req, res, responseData);
+           
+        } catch (err) {
+          return res.status(401).send(response.error(err));
+        }
+    }
+});
 })
 
 const updateProfile = (async(req, res) => {
@@ -224,5 +348,7 @@ module.exports =
   updateProfile,
   addPost,
   getPost,
-  logout
+  logout,
+  uploadDocument,
+  uploadVideo
 }

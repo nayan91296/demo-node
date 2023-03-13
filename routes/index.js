@@ -15,4 +15,8 @@ router.post("/addPost",userValidation.userPost,auth,admin,userController.addPost
 router.get("/getPost",auth,userController.getPost);
 router.post("/logout",auth,userController.logout);
 
+
+router.post("/uploadDocument",auth,userController.uploadDocument);
+router.post("/uploadVideo",auth,userController.uploadVideo);
+
 module.exports=router;
