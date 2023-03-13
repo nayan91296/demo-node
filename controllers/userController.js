@@ -339,6 +339,25 @@ const logout = async(req, res) => {
     }
 };
 
+const changePassword = async(req, res) => { 
+    try {
+      const user = await userModel.findOne({where:{id:req.userId}});
+      const isMatch = await bcrypt.compare(req.body.old_password, user.password);
+      if (!isMatch) {
+        return res.status(401).send(response.error('Incorrect current password'));  
+      }
+      // Hash new password and update user
+      const salt = await bcrypt.genSalt(10);
+      user.password = await bcrypt.hash(req.body.new_password, salt);
+      await user.save();
+    
+      return response.success(req, res, 'Password change successfully');
+    } catch (error) {
+      console.log(error);
+      return res.status(403).send(response.error(error));      
+    }
+};
+
 module.exports = 
 { 
   login,
@@ -350,5 +369,6 @@ module.exports =
   getPost,
   logout,
   uploadDocument,
-  uploadVideo
+  uploadVideo,
+  changePassword
 }

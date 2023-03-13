@@ -22,6 +22,21 @@ function userLogin(req, res, next) {
   validatorUtilWithCallback(validationRule, {}, req, res, next);
 }
 
+function changePassword(req, res, next) {  
+  const validationRule = {
+      "old_password": "required",
+      "new_password": [
+        'required',
+        'min:6',
+        'regex:/^(?=.*\\d)(?=.*[a-z])(?=.*[0-9])(?=.*[A-Z])(?=.*[!@#$%^&*]).{6,}$/'
+      ]
+  }
+  const messages = {
+    'regex.new_password': ':attribute must contain at least one lowercase letter, one uppercase letter, one special letter(!@#$%^&*) and one digit'
+  }
+  validatorUtilWithCallback(validationRule, messages, req, res, next);
+}
+
 function userPost(req, res, next) {
   const validationRule = {
       "name": "required|exist:posts,name",
@@ -34,9 +49,6 @@ function validatorUtilWithCallback (rules, customMessages, req, res, next) {
   const validation = new Validator(req.body, rules, customMessages);
   validation.passes(() => next());
   validation.fails(() => res.status(400).send(response.validationError(formattedErrors(validation.errors.errors))));
-  // if(validation.fails()){
-  //   return res.status(400).send(response.validationError(formattedErrors(validation.errors.errors)));
-  // }
 };
 
 Validator.registerAsync('exist', function (value, attribute, req, passes) {
@@ -78,5 +90,6 @@ module.exports = {
   validatorUtilWithCallback,
   userRegister,
   userLogin,
-  userPost 
+  userPost,
+  changePassword 
 }
