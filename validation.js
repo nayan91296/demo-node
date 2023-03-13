@@ -8,9 +8,16 @@ function userRegister(req, res, next) {
   const validationRule = {
       "name": "required|string",
       "email": "required|email|exist:users,email",
-      "password": "required|min:6|max:15",
+      "password": [
+        'required',
+        'min:6',
+        'regex:/^(?=.*\\d)(?=.*[a-z])(?=.*[0-9])(?=.*[A-Z])(?=.*[!@#$%^&*]).{6,}$/'
+      ]
   }
-  validatorUtilWithCallback(validationRule, {}, req, res, next);
+  const messages = {
+    'regex.password': ':attribute must contain at least one lowercase letter, one uppercase letter, one special letter(!@#$%^&*) and one digit'
+  }
+  validatorUtilWithCallback(validationRule, messages, req, res, next);
 }
 
 function userLogin(req, res, next) {

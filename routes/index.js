@@ -12,6 +12,8 @@ router.post("/changePassword",auth,userValidation.changePassword,userController.
 router.post("/logout",auth,userController.logout);
 router.get("/getProfile",auth,userController.getProfile);
 router.post("/updateProfile",auth,userController.updateProfile);
+router.post("/verifyOtp",auth,userController.verifyOtp);
+router.get("/sendOtp",auth,userController.sendOtp);
 
 router.post("/addPost",userValidation.userPost,auth,admin,userController.addPost);
 router.get("/getPost",auth,userController.getPost);

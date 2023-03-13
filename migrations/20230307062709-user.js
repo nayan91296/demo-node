@@ -28,6 +28,16 @@ module.exports = {
       role: {
         type: Sequelize.INTEGER
       },
+      otp: {
+        type: Sequelize.INTEGER
+      },
+      is_verify: {
+        type: Sequelize.INTEGER,
+        defaultValue: 0
+      },
+      profile:{
+        type: DataTypes.TEXT,
+      },
       createdAt: {
         allowNull: false,
         type: Sequelize.DATE

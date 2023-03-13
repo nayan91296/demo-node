@@ -12,6 +12,7 @@ var app = express()
 const postModel = require('../models/post');
 const nodemailer = require('nodemailer');
 const { client } = require('../redis');
+const crypto = require('crypto');
 
 const register = (async (req, res) => {
   try{
@@ -24,16 +25,19 @@ const register = (async (req, res) => {
         if (err) {
           return res.status(401).send(response.error(err));
         }
+        var otp = generateOTP();
         var userRegister = await userModel.create({
             name : name,
             email : email,
+            otp:otp,
             password : hashedPassword,
             createdAt: new Date(),
             updatedAt: new Date()
         });
         var userId = userRegister.toJSON().id;
         const token = jwt.sign({ userId }, 'secret', { expiresIn: '1h' });
-        sendMail(email);
+        
+        sendMail(email,otp);
         return response.success(req, res, token);
     });
   }catch(error){
@@ -43,7 +47,14 @@ const register = (async (req, res) => {
     
 })
 
-const sendMail = async (email) => {
+function generateOTP() {
+  // Generate a random number between 1000 and 9999
+  const randomNumber = crypto.randomInt(1000, 10000);
+  // Convert the number to a string and return it
+  return randomNumber.toString();
+}
+
+const sendMail = async (email,otp) => {
     // create reusable transporter object using the default SMTP transport
     let transporter = nodemailer.createTransport({
       host: 'smtp.gmail.com',
@@ -59,18 +70,18 @@ const sendMail = async (email) => {
     let mailOptions = {
       from: 'nayanvariya123@gmail.com', // sender address
       to: email, // list of receivers
-      subject: 'Hello ✔', // Subject line
-      text: 'Hello world?', // plain text body
-      html: '<b>Hello world?</b>' // html body
+      subject: 'Verification', // Subject line
+      text: 'Your verification code is: '+otp, // plain text body
+      html: 'Your verification code is: '+otp, // html body
     };
 
     // send mail with defined transport object
     transporter.sendMail(mailOptions, (error, info) => {
       if (error) {
-          console.log('here',error);
+          // console.log('here',error);
           return res.status(401).send(response.error(err));
       }
-      console.log('Message sent: %s', info.messageId);
+      // console.log('Message sent: %s', info.messageId);
     });
 };
 
@@ -358,6 +369,39 @@ const changePassword = async(req, res) => {
     }
 };
 
+const verifyOtp = async(req, res) => { 
+  try {
+    const user = await userModel.findOne({where:{id:req.userId}});
+    
+    if (user.otp != req.body.otp) {
+      return res.status(401).send(response.error('Incorrect OTP'));  
+    }
+
+    user.is_verify = 1;
+    await user.save();
+  
+    return response.success(req, res, 'Verification successfully');
+  } catch (error) {
+    console.log(error);
+    return res.status(403).send(response.error(error));      
+  }
+};
+
+const sendOtp = async(req, res) => { 
+  try {
+    
+    var otp = generateOTP();
+    const user = await userModel.findOne({where:{id:req.userId}});
+    user.otp = otp;
+    await user.save();
+
+    return response.success(req, res, otp);
+  } catch (error) {
+    console.log(error);
+    return res.status(403).send(response.error(error));      
+  }
+};
+
 module.exports = 
 { 
   login,
@@ -370,5 +414,7 @@ module.exports =
   logout,
   uploadDocument,
   uploadVideo,
-  changePassword
+  changePassword,
+  verifyOtp,
+  sendOtp
 }

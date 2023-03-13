@@ -15,6 +15,13 @@ const User = sequelize.define('user', {
             type: Sequelize.INTEGER,
             defaultValue: 2
           },
+          otp: {
+            type: Sequelize.INTEGER
+          },
+          is_verify: {
+            type: Sequelize.INTEGER,
+            defaultValue: 0
+          },
           profile:{
             type: DataTypes.TEXT,
             get() {
