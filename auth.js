@@ -4,6 +4,7 @@ const { client } = require("./redis");
 
 module.exports = (async (req, res, next) => {
     try {
+        console.log('in');
         const token = req.header("token");
         if (!token) return res.status(403).send("Access denied.");
 

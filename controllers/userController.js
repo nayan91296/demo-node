@@ -114,6 +114,7 @@ const login = (async(req, res) => {
   });
 
 const getProfile = (async(req, res) => {
+  console.log('here');
     var userD = await userModel.findOne({where:{id:req.userId}});
     if(userD == null){
       return res.status(401).send(response.error('User not exist'));

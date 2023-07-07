@@ -7,7 +7,7 @@ module.exports.success = async function(req,res,data) {
 
     res.status(200).send({
       success: true,
-      data: (req.method == 'GET') ? response_data : data
+      data: (req.method == 'GET') ? data : data
     });
   };
   
